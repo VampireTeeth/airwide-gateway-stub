@@ -2,6 +2,8 @@ package com.iasgrp.stubs.airwide;
 
 import java.io.ByteArrayOutputStream;
 
+import org.apache.commons.codec.binary.Hex;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -11,14 +13,16 @@ public class DiscardServerHandler extends ChannelInboundHandlerAdapter{
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try{
 			ByteBuf buf = (ByteBuf)msg;
 			System.out.format("Received %d bytes from channel, will discard it.%n", buf.readableBytes());
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			buf.readBytes(out, buf.readableBytes());
 			ReferenceCountUtil.release(msg);
+			System.out.format("Received bytes: %s%n", Hex.encodeHexString(out.toByteArray()));
 		}finally{
 			ctx.close();
+			out.close();
 		}
 	}
 	

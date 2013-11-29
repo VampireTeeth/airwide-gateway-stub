@@ -52,7 +52,7 @@ public class DiscardServer {
 	
 				@Override
 				protected void initChannel(SocketChannel ch) throws Exception {
-					ch.pipeline().addLast(new DiscardServerHandler());
+					ch.pipeline().addLast(new DiscardOnEnoughBytesHandler());
 				}
 			 })
 			 .childOption(ChannelOption.SO_KEEPALIVE, true)
@@ -68,6 +68,6 @@ public class DiscardServer {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		new DiscardServer(1701).run();
+		new DiscardServer(17000).run();
 	}
 }
