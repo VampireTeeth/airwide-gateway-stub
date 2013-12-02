@@ -8,6 +8,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
 import java.util.concurrent.ThreadFactory;
 
@@ -52,7 +53,8 @@ public class DiscardServer {
 	
 				@Override
 				protected void initChannel(SocketChannel ch) throws Exception {
-					ch.pipeline().addLast(new DiscardOnEnoughBytesHandler());
+					ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 8, 2, 0, 0));
+					ch.pipeline().addLast(new AirwideTcpipInboundHandler());
 				}
 			 })
 			 .childOption(ChannelOption.SO_KEEPALIVE, true)

@@ -1,7 +1,7 @@
 
 package com.iasgrp.stubs.airwide;
 
-public interface AirwideConstants {
+public class AirwideConstants {
 
     public static final byte     DEFAULT_NUMBER_SCHEME          = (byte)0X91;
     public static final byte     OPERATION_LOGIN                = 1;
