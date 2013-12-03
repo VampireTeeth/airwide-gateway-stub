@@ -1,22 +1,48 @@
 package com.iasgrp.stubs.airwide;
 
-import static org.junit.Assert.*;
+import static junit.framework.Assert.assertEquals;
 
-import org.apache.commons.codec.binary.Hex;
+import java.nio.ByteBuffer;
+
+import org.junit.Before;
 import org.junit.Test;
 
 import com.iasgrp.stubs.airwide.utils.BytesUtils;
 
 public class BytesUtilsTest {
+	
+	private final static int TEST_INTEGER = 6;
+	private ByteBuffer buf;
+	
+	@Before
+	public void setUp() throws Exception {
+		buf = ByteBuffer.allocate(10);
+	}
+	
 	@Test
-	public void shouldReturnInteger() throws Exception {
-		byte[] bytes =  new byte[4];
-		bytes[0] = (byte)0;
-		bytes[1] = (byte)0;
-		bytes[2] = (byte)0;
-		bytes[3] = (byte)4;
-		System.out.println(BytesUtils.unsignedBytesToInt(bytes));
-		
+	public void shouldParseUnsignedBytesToInt() throws Exception {
+		byte[] bytes = integerBytes();
+		buf.get(bytes);
+		assertEq(TEST_INTEGER , BytesUtils.unsignedBytesToInt(bytes));
 	}
 
+	@Test
+	public void shouldParseUnsignedBytesToIntReversed() throws Exception {
+		byte[] bytes = integerBytes();
+		buf.get(bytes);
+		assertEq(Integer.reverseBytes(TEST_INTEGER), BytesUtils.unsignedBytesToIntReversed(bytes));
+	}
+
+	private <T> void assertEq(T expected, T actual) {
+		System.out.format("Expected = %s, Actual = %s%n", expected, actual);
+		assertEquals(expected, actual);
+	}
+	
+	private byte[] integerBytes() {
+		buf.putInt(TEST_INTEGER);
+		buf.flip();
+		byte[] bytes = new byte[4];
+		return bytes;
+	}
+	
 }

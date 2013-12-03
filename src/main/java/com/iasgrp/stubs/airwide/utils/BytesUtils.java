@@ -143,7 +143,6 @@ public class BytesUtils extends Object
 
   public static boolean compareBytesToInt(int intInput, byte[] inputBytes)
   {
-    int pos = 0;
     int checkInt = unsignedBytesToInt(inputBytes);
     return (checkInt == intInput);
   }
@@ -232,7 +231,6 @@ public class BytesUtils extends Object
   public static short unsignedBytesToShort(byte[] inputBytes)
   {
     short checkShort = 0;
-    int pos = 0;
 
     if (inputBytes.length < 0) return 0;
 

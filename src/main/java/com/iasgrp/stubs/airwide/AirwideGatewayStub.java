@@ -10,9 +10,16 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
+import java.nio.ByteOrder;
 import java.util.concurrent.ThreadFactory;
 
 public class AirwideGatewayStub {
+
+	private static final boolean FAIL_FAST = true;
+	private static final int INITIAL_BYTES_TO_STRIP = 0;
+	private static final int LENGTH_ADJUSTMENT = 0;
+	private static final int LENGTH_FIELD_LENGTH = 2;
+	private static final int LENGTH_FIELD_OFFSET = 8;
 
 	private enum Group {
 		BOSS, WORKER;
@@ -53,7 +60,8 @@ public class AirwideGatewayStub {
 	
 				@Override
 				protected void initChannel(SocketChannel ch) throws Exception {
-					ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 8, 2, 0, 0));
+					ch.pipeline().addLast(airwideLengthFieldBasedFrameDecoder());
+					
 					ch.pipeline().addLast(new AirwideTcpipInboundHandler());
 				}
 			 })
@@ -67,6 +75,17 @@ public class AirwideGatewayStub {
 			workerGroup.shutdownGracefully();
 			bossGroup.shutdownGracefully();
 		}
+	}
+
+	private LengthFieldBasedFrameDecoder airwideLengthFieldBasedFrameDecoder() {
+		return new LengthFieldBasedFrameDecoder(
+				ByteOrder.LITTLE_ENDIAN, 
+				Integer.MAX_VALUE, 
+				LENGTH_FIELD_OFFSET, 
+				LENGTH_FIELD_LENGTH, 
+				LENGTH_ADJUSTMENT, 
+				INITIAL_BYTES_TO_STRIP, 
+				FAIL_FAST);
 	}
 	
 	public static void main(String[] args) throws Exception {
