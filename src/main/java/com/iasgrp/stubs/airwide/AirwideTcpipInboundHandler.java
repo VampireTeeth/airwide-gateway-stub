@@ -21,9 +21,20 @@ public class AirwideTcpipInboundHandler extends ChannelInboundHandlerAdapter{
 		if(readableBytes > TCPIP_HEADER_LENGTH) {
 			byte[] payload = new byte[readableBytes - TCPIP_HEADER_LENGTH];
 			buf.readBytes(payload);
-			System.out.format("Payload: %s%n", new String(payload));
+			System.out.format("Payload: %s%n", Hex.encodeHexString(payload));
 		}
 		
+		
+	}
+	
+	@Override
+	public void channelActive(ChannelHandlerContext ctx) throws Exception {
+		System.out.println("AirwideTcpipInboundHandler.channelActive()");
+	}
+	
+	@Override
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		System.out.println("AirwideTcpipInboundHandler.channelInactive()");
 	}
 	
 }
