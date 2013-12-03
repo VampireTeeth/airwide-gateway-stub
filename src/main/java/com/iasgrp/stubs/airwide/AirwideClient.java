@@ -5,8 +5,6 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import org.apache.commons.codec.binary.Hex;
-
 
 public class AirwideClient {
 	private SocketChannel sc;
@@ -27,7 +25,7 @@ public class AirwideClient {
 		writeBuf.flip();
 		
 		sc.write(writeBuf);
-		ByteBuffer readBuf = ByteBuffer.allocate(1024);
+//		ByteBuffer readBuf = ByteBuffer.allocate(1024);
 		
 //		int read = sc.read(readBuf);
 //		readBuf.flip();
@@ -59,7 +57,7 @@ public class AirwideClient {
 		sc.write(writeBuf2);
 		Thread.sleep(1000);
 		sc.write(writeBuf3);
-		ByteBuffer readBuf = ByteBuffer.allocate(1024);
+//		ByteBuffer readBuf = ByteBuffer.allocate(1024);
 		
 //		int read = sc.read(readBuf);
 //		readBuf.flip();
