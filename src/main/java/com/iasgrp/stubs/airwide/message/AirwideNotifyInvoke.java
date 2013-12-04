@@ -1,7 +1,9 @@
 package com.iasgrp.stubs.airwide.message;
 
-import java.util.Date;
-import static com.iasgrp.stubs.airwide.AirwideConstants.*;
+import static com.iasgrp.stubs.airwide.AirwideConstants.DEFAULT_NUMBER_SCHEME;
+import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_INVOKE;
+import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_USSNOTIFY;
+import static com.iasgrp.stubs.airwide.AirwideConstants.TCPIP_HEADER_LENGTH;
 
 
 public class AirwideNotifyInvoke {
