@@ -1,8 +1,12 @@
-// Copyright (c) 2002 InterAcct Solutions
 package com.iasgrp.stubs.airwide.message;
 
+import static com.iasgrp.stubs.airwide.AirwideConstants.DATA_CODING_UCS2;
+import static com.iasgrp.stubs.airwide.AirwideConstants.DEFAULT_NUMBER_SCHEME;
+import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_INVOKE;
+import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_USSREQUEST;
+import static com.iasgrp.stubs.airwide.AirwideConstants.TCPIP_HEADER_LENGTH;
+
 import java.util.Date;
-import static com.iasgrp.stubs.airwide.AirwideConstants.*;
 
 public class AirwideRequestInvoke {
 	

@@ -1,15 +1,9 @@
-// Copyright (c) 2002 InterAcct Solutions
 package com.iasgrp.stubs.airwide.message;
 
 import java.util.Date;
 import static com.iasgrp.stubs.airwide.AirwideConstants.*;
 
-/**
- * A Class class.
- * <P>
- * 
- * @author JLM
- */
+
 public class AirwideNotifyInvoke {
 
 	private AirwideHeader header = new AirwideHeader();

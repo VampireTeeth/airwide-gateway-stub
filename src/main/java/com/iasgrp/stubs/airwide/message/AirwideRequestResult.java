@@ -1,8 +1,8 @@
-// Copyright (c) 2002 InterAcct Solutions
 package com.iasgrp.stubs.airwide.message;
 
-import java.util.Date;
-import static com.iasgrp.stubs.airwide.AirwideConstants.*;
+import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_RESULT;
+import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_USSREQUEST;
+import static com.iasgrp.stubs.airwide.AirwideConstants.TCPIP_HEADER_LENGTH;
 
 public class AirwideRequestResult {
 	private AirwideHeader header = new AirwideHeader();

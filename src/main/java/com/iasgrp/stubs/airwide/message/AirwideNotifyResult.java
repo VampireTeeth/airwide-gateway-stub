@@ -1,19 +1,10 @@
-// Copyright (c) 2002 InterAcct Solutions
 package com.iasgrp.stubs.airwide.message;
 
-import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_ERROR;
 import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_RESULT;
 import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_USSNOTIFY;
 import static com.iasgrp.stubs.airwide.AirwideConstants.TCPIP_HEADER_LENGTH;
 
-import java.util.Date;
 
-/**
- * A Class class.
- * <P>
- * 
- * @author JLM
- */
 public class AirwideNotifyResult {
 	private AirwideHeader header = new AirwideHeader(); 
 	private int applicationIdentifier = 0;

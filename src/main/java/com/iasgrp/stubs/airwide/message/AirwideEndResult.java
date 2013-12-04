@@ -1,14 +1,9 @@
-// Copyright (c) 2002 InterAcct Solutions
 package com.iasgrp.stubs.airwide.message;
 
-import static com.iasgrp.stubs.airwide.AirwideConstants.*;
+import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_RESULT;
+import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_USSEND;
+import static com.iasgrp.stubs.airwide.AirwideConstants.TCPIP_HEADER_LENGTH;
 
-/**
- * A Class class.
- * <P>
- * 
- * @author JLM
- */
 public class AirwideEndResult {
 
 	private AirwideHeader header = new AirwideHeader();

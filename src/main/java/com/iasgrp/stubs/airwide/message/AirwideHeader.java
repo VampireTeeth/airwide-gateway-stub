@@ -1,4 +1,3 @@
-// Copyright (c) 2002 InterAcct Solutions
 package com.iasgrp.stubs.airwide.message;
 
 import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_ERROR;
@@ -7,12 +6,6 @@ import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_RESULT;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-/**
- * A Class class.
- * <P>
- * 
- * @author JLM
- */
 public class AirwideHeader {
 	
 	private static int nextOperationReference = 1;
