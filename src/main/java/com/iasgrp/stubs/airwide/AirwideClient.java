@@ -5,6 +5,8 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import org.apache.commons.codec.binary.Hex;
+
 
 public class AirwideClient {
 	private SocketChannel sc;
@@ -14,7 +16,7 @@ public class AirwideClient {
 		sc.socket().connect(new InetSocketAddress(ip, port));
 	}
 	
-	public void testMessage(int opertionRef, byte messageType, byte operation, byte[] payload) throws IOException {
+	public void sendMessage(int opertionRef, byte messageType, byte operation, byte[] payload) throws IOException {
 		ByteBuffer writeBuf = ByteBuffer.allocate(1024);
 		writeBuf.putInt(Integer.reverseBytes(opertionRef));
 		writeBuf.put(messageType);
@@ -25,20 +27,23 @@ public class AirwideClient {
 		writeBuf.flip();
 		
 		sc.write(writeBuf);
-//		ByteBuffer readBuf = ByteBuffer.allocate(1024);
-		
-//		int read = sc.read(readBuf);
-//		readBuf.flip();
-//		byte[] header = new byte[10];
-//		byte[] returnPayload = new byte[read - 10];
-//		readBuf.get(header);
-//		readBuf.get(returnPayload);
-//		System.out.format("Header: %s%n", Hex.encodeHexString(header));
-//		System.out.format("Payload: %s%n", new String(returnPayload));
+//		
 //		
 	}
 	
-	public void testMultipleByteBufferForOneMessage(int opertionRef, byte messageType, byte operation, byte[] payload) throws IOException, InterruptedException {
+	public void receiveMessage() throws IOException {
+		ByteBuffer readBuf = ByteBuffer.allocate(1024);
+		int read = sc.read(readBuf);
+		readBuf.flip();
+		byte[] header = new byte[10];
+		byte[] returnPayload = new byte[read - 10];
+		readBuf.get(header);
+		readBuf.get(returnPayload);
+		System.out.format("Header: %s%n", Hex.encodeHexString(header));
+		System.out.format("Payload: %s%n", Hex.encodeHexString(returnPayload));
+	}
+	
+	public void sendMultipleByteBufferForOneMessage(int opertionRef, byte messageType, byte operation, byte[] payload) throws IOException, InterruptedException {
 		ByteBuffer writeBuf1 = ByteBuffer.allocate(256);
 		ByteBuffer writeBuf2 = ByteBuffer.allocate(256);
 		ByteBuffer writeBuf3 = ByteBuffer.allocate(256);
@@ -69,6 +74,7 @@ public class AirwideClient {
 //		System.out.format("Payload: %s%n", new String(returnPayload));
 	}
 	
+	
 	void tearDown() throws IOException {
 		this.sc.close();
 	}
@@ -76,10 +82,22 @@ public class AirwideClient {
 	public static void main(String[] args) throws Exception {
 		AirwideClient client1 = new AirwideClient("localhost", 17000);
 		AirwideClient client2 = new AirwideClient("localhost", 17000);
+		AirwideClient client3 = new AirwideClient("localhost", 17000);
 		
 		try{
-			client1.testMessage(2, (byte)1, (byte)3, "Hello, World!".getBytes());
-			client2.testMultipleByteBufferForOneMessage(1, (byte)2, (byte)3, "Hello, World!".getBytes());
+			client1.sendMessage(2, (byte)1, (byte)0, "Hello, World!".getBytes());
+			client1.receiveMessage();
+			client2.sendMultipleByteBufferForOneMessage(1, (byte)2, (byte)0, "Hello, World!".getBytes());
+			client2.receiveMessage();
+			
+			ByteBuffer loginPayloadBuf = ByteBuffer.allocate(5);
+			loginPayloadBuf.put((byte)4);
+			loginPayloadBuf.putInt(Integer.reverseBytes(29));
+			loginPayloadBuf.flip();
+			byte[] loginPayload = new byte[5];
+			loginPayloadBuf.get(loginPayload);
+			client3.sendMessage(2, (byte)1, (byte)1, loginPayload);
+			client3.receiveMessage();
 		}finally {
 			client1.tearDown();
 			client2.tearDown();

@@ -21,15 +21,23 @@ public class AirwideGatewayStub {
 	private static final int LENGTH_FIELD_LENGTH = 2;
 	private static final int LENGTH_FIELD_OFFSET = 8;
 
+	private final class AirwideChannelInitializer extends ChannelInitializer<SocketChannel> {
+		@Override
+		protected void initChannel(SocketChannel ch) throws Exception {
+			ch.pipeline().addLast(airwideLengthFieldBasedFrameDecoder());
+			ch.pipeline().addLast(new AirwideInboundHandler());
+		}
+	}
+
 	private enum Group {
 		BOSS, WORKER;
 	}
 
-	private class DiscardServerThreadFactory implements ThreadFactory {
+	private class AirwideGatewayStubThreadFactory implements ThreadFactory {
 
 		private Group group;
 
-		private DiscardServerThreadFactory(Group group) {
+		private AirwideGatewayStubThreadFactory(Group group) {
 			this.group = group;
 		}
 
@@ -50,21 +58,13 @@ public class AirwideGatewayStub {
 	}
 
 	public void run() throws Exception {
-		EventLoopGroup bossGroup = new NioEventLoopGroup(100, new DiscardServerThreadFactory(Group.BOSS));
-		EventLoopGroup workerGroup = new NioEventLoopGroup(500, new DiscardServerThreadFactory(Group.WORKER));
+		EventLoopGroup bossGroup = new NioEventLoopGroup(100, new AirwideGatewayStubThreadFactory(Group.BOSS));
+		EventLoopGroup workerGroup = new NioEventLoopGroup(500, new AirwideGatewayStubThreadFactory(Group.WORKER));
 		try{
 			ServerBootstrap b = new ServerBootstrap();
 			b.group(bossGroup, workerGroup)
 			 .channel(NioServerSocketChannel.class)
-			 .childHandler(new ChannelInitializer<SocketChannel>() {
-	
-				@Override
-				protected void initChannel(SocketChannel ch) throws Exception {
-					ch.pipeline().addLast(airwideLengthFieldBasedFrameDecoder());
-					
-					ch.pipeline().addLast(new AirwideTcpipInboundHandler());
-				}
-			 })
+			 .childHandler(new AirwideChannelInitializer())
 			 .childOption(ChannelOption.SO_KEEPALIVE, true)
 			 .option(ChannelOption.SO_BACKLOG, 128)
 			 ;

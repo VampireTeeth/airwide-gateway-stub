@@ -4,6 +4,8 @@ package com.iasgrp.stubs.airwide.message;
 import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_ERROR;
 import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_INVOKE;
 import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_RESULT;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 /**
  * A Class class.
@@ -12,9 +14,7 @@ import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_RESULT;
  * @author JLM
  */
 public class AirwideHeader {
-	public static final byte DATA_CODING_UCS2 = 0x48;
-	public static final byte DATA_CODING_RESERVED_SEMA = 15;
-
+	
 	private static int nextOperationReference = 1;
 
 	private int operationReference = 0;
@@ -138,6 +138,16 @@ public class AirwideHeader {
 				messageType + ", operation=" + 
 				operation + ", overallMessageLength=" + 
 				overallMessageLength + "]";
+	}
+	
+	public ByteBuf toByteBuf() {
+		ByteBuf buf = Unpooled.buffer();
+		buf.writeInt(Integer.reverseBytes(operationReference));
+		buf.writeByte((byte)messageType);
+		buf.writeByte((byte)operation);
+		buf.writeBytes(new byte[]{0,0});
+		buf.writeShort(Short.reverseBytes(overallMessageLength));
+		return buf;
 	}
 
 }
