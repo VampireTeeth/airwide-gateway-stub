@@ -1,14 +1,22 @@
 package com.iasgrp.stubs.airwide.message;
 
+import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_LOGIN;
+
+import com.iasgrp.stubs.airwide.AirwideConstants;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
 public class AirwideLogin {
 
-	private AirwideHeader header;
+	private AirwideHeader header = new AirwideHeader();
 	private byte applicationIdentifierLen = 4;
 	private int applicationIdentifier = 0;
 
+	public AirwideLogin() {
+		header.setOperation(OPERATION_LOGIN);
+	}
+	
 	public AirwideHeader getHeader() {
 		return header;
 	}
@@ -39,11 +47,11 @@ public class AirwideLogin {
 	}
 	
 	public ByteBuf toByteBuf() {
-		ByteBuf buf = Unpooled.buffer();
-		buf.writeBytes(header.toByteBuf());
-		buf.writeByte(applicationIdentifierLen);
-		buf.writeInt(Integer.reverseBytes(applicationIdentifier));
-		return buf;
+		ByteBuf bodyBuf = Unpooled.buffer();
+		bodyBuf.writeByte(applicationIdentifierLen);
+		bodyBuf.writeInt(Integer.reverseBytes(applicationIdentifier));
+		header.setOverallMessageLength((short)bodyBuf.readableBytes());
+		return Unpooled.copiedBuffer(header.toByteBuf(), bodyBuf);
 	}
 	
 

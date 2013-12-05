@@ -9,8 +9,6 @@ import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_USSREQUEST;
 import static com.iasgrp.stubs.airwide.Factories.*;
 import static com.iasgrp.stubs.airwide.utils.BytesUtils.*;
 
-import org.apache.commons.codec.binary.Hex;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;

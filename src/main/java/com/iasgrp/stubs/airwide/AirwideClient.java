@@ -27,8 +27,6 @@ public class AirwideClient {
 		writeBuf.flip();
 		
 		sc.write(writeBuf);
-//		
-//		
 	}
 	
 	public void receiveMessage() throws IOException {

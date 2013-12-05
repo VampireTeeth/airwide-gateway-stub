@@ -2,7 +2,6 @@ package com.iasgrp.stubs.airwide;
 
 import static com.iasgrp.stubs.airwide.utils.BytesUtils.hexDump;
 
-import org.apache.commons.codec.binary.Hex;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
@@ -12,7 +11,6 @@ import io.netty.channel.ChannelHandlerContext;
 import com.iasgrp.stubs.airwide.message.AirwideHeader;
 import com.iasgrp.stubs.airwide.message.AirwideProcessRequestInvoke;
 import com.iasgrp.stubs.airwide.utils.ApplicationIdentifierFactory;
-import com.iasgrp.stubs.airwide.utils.BytesUtils;
 import com.iasgrp.stubs.airwide.utils.DialogReferenceFactory;
 import com.iasgrp.stubs.airwide.utils.MsisdnFactory;
 import com.iasgrp.stubs.airwide.utils.UssdStringFactory;
