@@ -4,6 +4,7 @@ import static junit.framework.Assert.assertEquals;
 
 import java.nio.ByteBuffer;
 
+import org.apache.commons.codec.binary.Hex;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,6 +32,15 @@ public class BytesUtilsTest {
 		byte[] bytes = integerBytes();
 		buf.get(bytes);
 		assertEq(Integer.reverseBytes(TEST_INTEGER), BytesUtils.unsignedBytesToIntReversed(bytes));
+	}
+	
+	@Test
+	public void shouldParseEncodedOctString() throws Exception {
+		byte[] bytes = "Hello,world!".getBytes();
+		System.out.println(Hex.encodeHexString(bytes));
+		System.out.println(Hex.encodeHexString(BytesUtils.getEncodedOctetString(bytes)));
+		System.out.println(Hex.encodeHexString(BytesUtils.getEncodedBytes(bytes)));
+		
 	}
 
 	private <T> void assertEq(T expected, T actual) {

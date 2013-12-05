@@ -1,6 +1,13 @@
 package com.iasgrp.stubs.airwide.message;
 
-import static com.iasgrp.stubs.airwide.AirwideConstants.*;
+import static com.iasgrp.stubs.airwide.AirwideConstants.DEFAULT_NUMBER_SCHEME;
+import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_INVOKE;
+import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_PROCESS_USSREQUEST;
+import static com.iasgrp.stubs.airwide.AirwideConstants.TCPIP_HEADER_LENGTH;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+
+import com.iasgrp.stubs.airwide.utils.BytesUtils;
 
 public class AirwideProcessRequestInvoke {
 	private AirwideHeader header = new AirwideHeader();
@@ -261,6 +268,46 @@ public class AirwideProcessRequestInvoke {
 	public void setVlrNumberScheme(byte vlrNumberScheme) {
 		this.vlrNumberScheme = vlrNumberScheme;
 	}
+
+	public ByteBuf toByteBuf() {
+		ByteBuf bodyBuf = Unpooled.buffer();
+		bodyBuf.writeByte(applicationIdentifierLen);
+		bodyBuf.writeInt(Integer.reverseBytes(applicationIdentifier));
+		bodyBuf.writeByte(dialogueReferenceLen);
+		bodyBuf.writeInt(Integer.reverseBytes(dialogueReference));
+		writeLenSchemeEncodedOctetString(bodyBuf, msisdnLen, msisdnNumberScheme, msisdn);
+		writeLenSchemeEncodedOctetString(bodyBuf, hlrNoLen, hlrNumberScheme, hlrNo);
+		writeLenEncodedOctetString(bodyBuf, imsiLen, imsi);
+		writeLenSchemeEncodedOctetString(bodyBuf, vlrNoLen, vlrNumberScheme, vlrNo);
+		bodyBuf.writeByte(dataCodingSchemeLen);
+		bodyBuf.writeByte(dataCodingScheme);
+		writeLenEncodedBytes(bodyBuf, ussdStringLen, ussdString);
+		header.setOverallMessageLength((short)bodyBuf.readableBytes());
+		ByteBuf headerBuf = header.toByteBuf();
+		return Unpooled.copiedBuffer(headerBuf, bodyBuf);
+	}
+
+	private void writeLenSchemeEncodedOctetString(ByteBuf buf, byte len, byte scheme, String str) {
+		if(msisdnLen > 0) {
+			buf.writeByte(len + 1);
+			buf.writeByte(scheme);
+			buf.writeBytes(BytesUtils.getEncodedOctetString(str.getBytes()));
+		}else {
+			buf.writeByte(len);
+		}
+	}
+	
+	private void writeLenEncodedBytes(ByteBuf buf, byte len, String str) {
+		buf.writeByte(len);
+		buf.writeBytes(BytesUtils.getEncodedBytes(str.getBytes()));
+	}
+	
+	private void writeLenEncodedOctetString(ByteBuf buf, byte len, String str){
+		buf.writeByte(len);
+		buf.writeBytes(BytesUtils.getEncodedOctetString(str.getBytes()));
+	}
+	
+	
 
 	
 }

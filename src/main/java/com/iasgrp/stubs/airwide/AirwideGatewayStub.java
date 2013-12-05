@@ -44,7 +44,7 @@ public class AirwideGatewayStub {
 		@Override
 		public Thread newThread(Runnable r) {
 			Thread t = new Thread(r);
-			String name = group.name() + ":Discard server event loop group thread[" + t.hashCode() + "]";
+			String name = group.name() + ":airwide gateway stub event loop group thread[" + t.hashCode() + "]";
 			t.setName(name);
 			return t;
 		}
@@ -89,6 +89,6 @@ public class AirwideGatewayStub {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		new AirwideGatewayStub(17000).run();
+		new AirwideGatewayStub(1701).run();
 	}
 }

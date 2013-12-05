@@ -1,10 +1,18 @@
 package com.iasgrp.stubs.airwide;
 
-import static com.iasgrp.stubs.airwide.AirwideConstants.*;
+import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_LOGIN;
+import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_PROCESS_USSDATA;
+import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_PROCESS_USSREQUEST;
+import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_USSEND;
+import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_USSNOTIFY;
+import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_USSREQUEST;
+import static com.iasgrp.stubs.airwide.Factories.*;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.*;
+
+import org.apache.commons.codec.binary.Hex;
+
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
@@ -23,32 +31,29 @@ public class AirwideInboundHandler extends ChannelInboundHandlerAdapter{
 			switch(header.getOperation()){
 			case OPERATION_LOGIN:
 				AirwideLogin login = parseLogin(buf, header);
+				ByteBuf loginBuf = login.toByteBuf();
+				System.out.format("Hex dump login: %s%n", hexDump(loginBuf));
 				ChannelFuture future = echo(ctx, buf);
-				future.addListener(new ChannelFutureListener() {
-					
-					@Override
-					public void operationComplete(ChannelFuture future) throws Exception {
-						
-					}
-				});
+				future.addListener(new ProcessRequestInvokeChannelFutureListener(header, 
+						msisdnFactory(), 
+						dialogReferenceFactory(), 
+						ussdStringFactory(), 
+						applicationidentifierFactory(), 
+						ctx));
 				break;
 			case OPERATION_PROCESS_USSDATA:
-				echo(ctx, buf);
 				break;
 			case OPERATION_PROCESS_USSREQUEST:
-				echo(ctx, buf);
+				System.out.format("Received process request result: %s%n", hexDump(buf));
 				break;
 			case OPERATION_USSEND:
-				echo(ctx, buf);
+				System.out.format("Received end result: %s%n", hexDump(buf));
 				break;
 			case OPERATION_USSNOTIFY:
-				echo(ctx, buf);
 				break;
 			case OPERATION_USSREQUEST:
-				echo(ctx, buf);
 				break;
 			default:
-				echo(ctx, buf);
 			}
 		}finally{
 			ReferenceCountUtil.release(msg);
