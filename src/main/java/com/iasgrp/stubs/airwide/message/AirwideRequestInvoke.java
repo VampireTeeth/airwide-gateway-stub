@@ -5,32 +5,50 @@ import static com.iasgrp.stubs.airwide.AirwideConstants.DEFAULT_NUMBER_SCHEME;
 import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_INVOKE;
 import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_USSREQUEST;
 import static com.iasgrp.stubs.airwide.AirwideConstants.TCPIP_HEADER_LENGTH;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.readLenEncodedBytes;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.readLenEncodedOctetString;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.readLenSchemeEncodedOctetString;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.writeLenEncodedBytes;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.writeLenEncodedOctetString;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.writeLenSchemeEncodedOctetString;
+import static io.netty.buffer.Unpooled.copiedBuffer;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 import java.util.Date;
 
-public class AirwideRequestInvoke {
+public class AirwideRequestInvoke implements AirwideMessage{
 	
 	private AirwideHeader header = new AirwideHeader();
 
+	private byte applicationIdentifierLen = 4;
+
 	private int applicationIdentifier = 0;
+	private byte dialogueReferenceLen = 4;
+
 	private int dialogueReference = 0;
+	private byte msisdnLen = 0;
+
 	private byte msisdnNumberScheme = DEFAULT_NUMBER_SCHEME;
 	private String msisdn = "";
+	private byte externalNodeNoLen = 0;
+
 	private String externalNodeNo = "";
+	private byte imsiLen = 0;
+
 	private String imsi = "";
+	private byte vlrNoLen = 0;
+
 	private byte vlrNumberScheme = DEFAULT_NUMBER_SCHEME;
 	private String vlrNo = "";
-	private byte dataCodingScheme = 0;
-	private String ussdString = "";
-
-	private byte applicationIdentifierLen = 4;
-	private byte dialogueReferenceLen = 4;
-	private byte msisdnLen = 0;
-	private byte externalNodeNoLen = 0;
-	private byte imsiLen = 0;
-	private byte vlrNoLen = 0;
 	private byte dataCodingSchemeLen = 1;
+
+	private byte dataCodingScheme = 0;
 	private byte ussdStringLen = 0;
+
+	
+
+	private String ussdString = "";
 
 	/**
 	 * Constructor
@@ -297,4 +315,69 @@ public class AirwideRequestInvoke {
 		this.ussdString = ussdString;
 	}
 
+	@Override
+	public void decode(ByteBuf buf) throws Exception {
+		
+		header.decode(buf);
+		applicationIdentifierLen = buf.readByte();
+		applicationIdentifier = Integer.reverseBytes(buf.readInt());
+		dialogueReferenceLen = buf.readByte();
+		dialogueReference = Integer.reverseBytes(buf.readInt());
+		
+		LenSchemeString lss = readLenSchemeEncodedOctetString(buf);
+		msisdnLen = lss.getLen();
+		msisdnNumberScheme = lss.getScheme();
+		msisdn = lss.getStr();
+		
+		LenString ls = readLenEncodedOctetString(buf);
+		externalNodeNoLen = ls.getLen();
+		externalNodeNo = ls.getStr();
+		
+		ls = readLenEncodedOctetString(buf);
+		imsiLen = ls.getLen();
+		imsi = ls.getStr();
+		
+		lss = readLenSchemeEncodedOctetString(buf);
+		vlrNoLen = lss.getLen();
+		vlrNumberScheme = lss.getScheme();
+		vlrNo = lss.getStr();
+		
+		dataCodingSchemeLen = buf.readByte();
+		dataCodingScheme = buf.readByte();
+		
+		LenBytes lb = readLenEncodedBytes(buf);
+		ussdStringLen = lb.getLen();
+		ussdString = new String(lb.getBytes());
+	}
+
+	@Override
+	public ByteBuf encode() throws Exception {
+		ByteBuf bodyBuf = Unpooled.buffer();
+		bodyBuf.writeByte(applicationIdentifierLen);
+		bodyBuf.writeInt(Integer.reverseBytes(applicationIdentifier));
+		bodyBuf.writeByte(dialogueReferenceLen);
+		bodyBuf.writeInt(Integer.reverseBytes(dialogueReference));
+		writeLenSchemeEncodedOctetString(bodyBuf, msisdnLen, msisdnNumberScheme, msisdn);
+		writeLenEncodedOctetString(bodyBuf, externalNodeNoLen, externalNodeNo);
+		writeLenEncodedOctetString(bodyBuf, imsiLen, imsi);
+		writeLenSchemeEncodedOctetString(bodyBuf, vlrNoLen, vlrNumberScheme, vlrNo);
+		bodyBuf.writeByte(dataCodingSchemeLen);
+		bodyBuf.writeByte(dataCodingScheme);
+		writeLenEncodedBytes(bodyBuf, ussdStringLen, ussdString);
+		header.setOverallMessageLength((short)bodyBuf.readableBytes());
+		ByteBuf headerBuf = header.encode();
+		return copiedBuffer(headerBuf, bodyBuf);
+	}
+
+	@Override
+	public String toString() {
+		return "AirwideRequestInvoke [header=" + header + ", applicationIdentifierLen=" + applicationIdentifierLen + ", applicationIdentifier=" + applicationIdentifier + ", dialogueReferenceLen="
+				+ dialogueReferenceLen + ", dialogueReference=" + dialogueReference + ", msisdnLen=" + msisdnLen + ", msisdnNumberScheme=" + msisdnNumberScheme + ", msisdn=" + msisdn
+				+ ", externalNodeNoLen=" + externalNodeNoLen + ", externalNodeNo=" + externalNodeNo + ", imsiLen=" + imsiLen + ", imsi=" + imsi + ", vlrNoLen=" + vlrNoLen + ", vlrNumberScheme="
+				+ vlrNumberScheme + ", vlrNo=" + vlrNo + ", dataCodingSchemeLen=" + dataCodingSchemeLen + ", dataCodingScheme=" + dataCodingScheme + ", ussdStringLen=" + ussdStringLen
+				+ ", ussdString=" + ussdString + "]";
+	}
+
+	
+	
 }

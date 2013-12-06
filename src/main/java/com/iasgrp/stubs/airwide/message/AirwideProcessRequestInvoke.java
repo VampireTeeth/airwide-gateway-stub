@@ -4,12 +4,18 @@ import static com.iasgrp.stubs.airwide.AirwideConstants.DEFAULT_NUMBER_SCHEME;
 import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_INVOKE;
 import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_PROCESS_USSREQUEST;
 import static com.iasgrp.stubs.airwide.AirwideConstants.TCPIP_HEADER_LENGTH;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.readLenEncodedBytes;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.readLenEncodedOctetString;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.readLenSchemeEncodedOctetString;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.writeLenEncodedBytes;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.writeLenEncodedOctetString;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.writeLenSchemeEncodedOctetString;
+import static io.netty.buffer.Unpooled.copiedBuffer;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-import com.iasgrp.stubs.airwide.utils.BytesUtils;
-
-public class AirwideProcessRequestInvoke {
+public class AirwideProcessRequestInvoke implements AirwideMessage{
 	private AirwideHeader header = new AirwideHeader();
 	private int applicationIdentifier = 0;
 	private int dialogueReference = 0;
@@ -268,8 +274,9 @@ public class AirwideProcessRequestInvoke {
 	public void setVlrNumberScheme(byte vlrNumberScheme) {
 		this.vlrNumberScheme = vlrNumberScheme;
 	}
-
-	public ByteBuf toByteBuf() {
+	
+	@Override
+	public ByteBuf encode() throws Exception {
 		ByteBuf bodyBuf = Unpooled.buffer();
 		bodyBuf.writeByte(applicationIdentifierLen);
 		bodyBuf.writeInt(Integer.reverseBytes(applicationIdentifier));
@@ -283,31 +290,43 @@ public class AirwideProcessRequestInvoke {
 		bodyBuf.writeByte(dataCodingScheme);
 		writeLenEncodedBytes(bodyBuf, ussdStringLen, ussdString);
 		header.setOverallMessageLength((short)bodyBuf.readableBytes());
-		ByteBuf headerBuf = header.toByteBuf();
-		return Unpooled.copiedBuffer(headerBuf, bodyBuf);
-	}
-
-	private void writeLenSchemeEncodedOctetString(ByteBuf buf, byte len, byte scheme, String str) {
-		if(msisdnLen > 0) {
-			buf.writeByte(len + 1);
-			buf.writeByte(scheme);
-			buf.writeBytes(BytesUtils.getEncodedOctetString(str.getBytes()));
-		}else {
-			buf.writeByte(len);
-		}
+		ByteBuf headerBuf = header.encode();
+		return copiedBuffer(headerBuf, bodyBuf);
 	}
 	
-	private void writeLenEncodedBytes(ByteBuf buf, byte len, String str) {
-		buf.writeByte(len);
-		buf.writeBytes(BytesUtils.getEncodedBytes(str.getBytes()));
+	@Override
+	public void decode(ByteBuf buf) throws Exception {
+		header.decode(buf);
+		applicationIdentifierLen = buf.readByte();
+		applicationIdentifier = Integer.reverseBytes(buf.readInt());
+		dialogueReferenceLen = buf.readByte();
+		dialogueReference = Integer.reverseBytes(buf.readInt());
+		
+		LenSchemeString lss = readLenSchemeEncodedOctetString(buf);
+		msisdnLen = lss.getLen();
+		msisdnNumberScheme = lss.getScheme();
+		msisdn = lss.getStr();
+		
+		lss = readLenSchemeEncodedOctetString(buf);
+		hlrNoLen = lss.getLen();
+		hlrNumberScheme = lss.getScheme();
+		hlrNo = lss.getStr();
+		
+		LenString ls = readLenEncodedOctetString(buf);
+		imsiLen = ls.getLen();
+		imsi = ls.getStr();
+		
+		lss = readLenSchemeEncodedOctetString(buf);
+		vlrNoLen = lss.getLen();
+		vlrNumberScheme = lss.getScheme();
+		vlrNo = lss.getStr();
+		
+		dataCodingSchemeLen = buf.readByte();
+		dataCodingScheme = buf.readByte();
+		
+		LenBytes lb = readLenEncodedBytes(buf);
+		ussdStringLen = lb.getLen();
+		ussdString = new String(lb.getBytes());
 	}
-	
-	private void writeLenEncodedOctetString(ByteBuf buf, byte len, String str){
-		buf.writeByte(len);
-		buf.writeBytes(BytesUtils.getEncodedOctetString(str.getBytes()));
-	}
-	
-	
-
 	
 }

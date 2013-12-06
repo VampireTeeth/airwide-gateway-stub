@@ -47,13 +47,9 @@ public class ProcessRequestInvokeChannelFutureListener implements ChannelFutureL
 		invoke.setApplicationIdentifier(applicationIdentifierFactory.newApplicationIdentifier());
 		invoke.setDataCodingScheme((byte) 0);
 		invoke.setUssdString(ussdStringFactory.newUssdString());
-		ByteBuf invokeBuf = invoke.toByteBuf();
-		
+		ByteBuf invokeBuf = invoke.encode();
 		System.out.format("Sending process request invoke: %s%n", hexDump(invokeBuf));
 		ctx.writeAndFlush(invokeBuf);
-		
-//		newFuture.addListener(new ProcessRequestInvokeChannelFutureListener(header, msisdnFactory, 
-//				dialogReferenceFactory, ussdStringFactory, applicationIdentifierFactory, ctx));
 	}
 
 }

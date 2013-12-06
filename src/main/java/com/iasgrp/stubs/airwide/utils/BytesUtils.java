@@ -1,9 +1,13 @@
 // Copyright (c) 2002 InterAcct Solutions Services
 package com.iasgrp.stubs.airwide.utils;
 
-import io.netty.buffer.ByteBuf;
+import static org.apache.commons.codec.binary.Hex.encodeHexString;
 
-import org.apache.commons.codec.binary.Hex;
+import com.iasgrp.stubs.airwide.message.LenBytes;
+import com.iasgrp.stubs.airwide.message.LenSchemeString;
+import com.iasgrp.stubs.airwide.message.LenString;
+
+import io.netty.buffer.ByteBuf;
 
 /**
  * A Class class.
@@ -257,7 +261,7 @@ public class BytesUtils extends Object {
 		System.out.println("Tran ID: " + transactionId + " (" + Integer.toHexString(transactionId));
 	}
 
-	public static byte[] getEncodedOctetString(byte[] decodedBytes) {
+	public static byte[] encodeOctetString(byte[] decodedBytes) {
 		int idx = 0;
 		int outIdx = 0;
 
@@ -277,7 +281,66 @@ public class BytesUtils extends Object {
 		return getEncodedOctetBytes;
 	}
 
-	public static byte[] getEncodedBytes(byte[] decodedBytes) {
+	public static  String  decodeOctetString(byte[] encodedString)
+	  {
+	    int      idx        = 0;
+	    byte     highOrderByte;
+	    byte     lowOrderByte;
+	    String   resultDecodedString = "";
+	
+	    for (idx = 0; idx < encodedString.length;  idx++)
+	    {
+	      highOrderByte = (byte)((encodedString[idx] & 0xF0) >> 4);
+	      lowOrderByte  = (byte)(encodedString[idx] & 0x0F);
+	      resultDecodedString += Byte.toString(lowOrderByte);
+	      if (highOrderByte == END_OCTET_STRING)
+	          break;
+	      resultDecodedString += Byte.toString(highOrderByte);
+	    }
+	    return resultDecodedString;
+	  }
+
+	public static  byte[]  decodeBytes(byte[] encodedString)
+	  {
+	    int      idx            = 0;
+	    int      outIdx         = 0;
+	    int      maskIdx        = 0;
+	    byte[]   maskLowByte    = {127,(byte)-130,(byte)-132,(byte)-136,(byte)-144,(byte)-160,(byte)-192};
+	    byte[]   maskHighByte   = {0, 1, 3, 7, 15, 31, 63};
+	
+	    byte[]   decodedBytes  = new byte[encodedString.length + (encodedString.length / 7)];
+	
+	    for (idx = 0; idx < encodedString.length; outIdx++, idx++)
+	    {
+	      decodedBytes[outIdx] = (byte)((encodedString[idx] << maskIdx )& maskLowByte[maskIdx]);
+	
+	      if (idx > 0)
+	      {
+	          decodedBytes[outIdx] = (byte)(decodedBytes[outIdx] |
+	                ((encodedString[idx - 1] >> (8 - maskIdx)) & maskHighByte[maskIdx]));
+	      }
+	      maskIdx = ++maskIdx % 7;
+	      if (maskIdx  == 0)
+	      {
+	        outIdx++;
+	        decodedBytes[outIdx] = (byte)((encodedString[idx] >> 1) & 127);
+	      }
+	    }
+	    if (decodedBytes[decodedBytes.length - 1] == CHARIAGE_RETURN_BYTE)
+	    {
+	        byte[] decodedBytesTrimmed = new byte[decodedBytes.length - 1];
+	        for (idx = 0; idx < decodedBytesTrimmed.length; idx++) {
+	            decodedBytesTrimmed[idx] = decodedBytes[idx];
+	        }
+	        return decodedBytesTrimmed;
+	    }
+	    else
+	    {
+	      return decodedBytes;
+	    }
+	  }
+
+	public static byte[] encodeBytes(byte[] decodedBytes) {
 		int idx = 0;
 		int outIdx = 0;
 		int maskIdx = 0;
@@ -304,6 +367,66 @@ public class BytesUtils extends Object {
 	}
 	
 	public static String hexDump(ByteBuf buf) {
-		return Hex.encodeHexString(buf.copy(buf.readerIndex(), buf.readableBytes()).array());
+		int len = buf.readableBytes();
+		byte[] bytes = new byte[len];
+		buf.getBytes(buf.readerIndex(), bytes, 0, len);
+		return encodeHexString(bytes);
+	}
+	
+	public static void writeLenSchemeEncodedOctetString(ByteBuf buf, byte len, byte scheme, String str) {
+		if(len > 0) {
+			buf.writeByte(len + 1);
+			buf.writeByte(scheme);
+			buf.writeBytes(encodeOctetString(str.getBytes()));
+		}else {
+			buf.writeByte(len);
+		}
+	}
+	
+	public static void writeLenEncodedOctetString(ByteBuf buf, byte len, String str){
+		buf.writeByte(len);
+		buf.writeBytes(encodeOctetString(str.getBytes()));
+	}
+
+	public static void writeLenEncodedBytes(ByteBuf buf, byte len, String str) {
+		buf.writeByte(len);
+		buf.writeBytes(encodeBytes(str.getBytes()));
+	}
+
+	public static LenSchemeString readLenSchemeEncodedOctetString(ByteBuf buf) {
+		byte len = buf.readByte();
+		byte scheme = 0;
+		String str = "";
+		
+		if(len > 0) {
+			scheme= buf.readByte();
+			byte[] msisdnBytes = new byte[len - 1];
+			buf.readBytes(msisdnBytes);
+			str = decodeOctetString(msisdnBytes);
+		}
+		
+		return new LenSchemeString(len, scheme, str);
+	}
+	
+	public static LenString readLenEncodedOctetString(ByteBuf buf) {
+		byte len = buf.readByte();
+		String str = "";
+		if(len > 0){
+			byte[] dst = new byte[len];
+			buf.readBytes(dst);
+			str = decodeOctetString(dst);
+		}
+		return new LenString(len, str);
+	}
+
+	public static LenBytes readLenEncodedBytes(ByteBuf buf) {
+		byte len = buf.readByte();
+		byte[] decoded = "".getBytes();
+		if(len > 0) {
+			byte[] bytes = new byte[len];
+			buf.readBytes(bytes);
+			decoded = decodeBytes(bytes);
+		}
+		return new LenBytes(len, decoded);
 	}
 }

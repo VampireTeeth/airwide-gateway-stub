@@ -6,7 +6,7 @@ import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_RESULT;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-public class AirwideHeader {
+public class AirwideHeader implements AirwideMessage{
 	
 	private static int nextOperationReference = 1;
 
@@ -133,7 +133,8 @@ public class AirwideHeader {
 				overallMessageLength + "]";
 	}
 	
-	public ByteBuf toByteBuf() {
+	@Override
+	public ByteBuf encode() throws Exception{
 		ByteBuf buf = Unpooled.buffer();
 		buf.writeInt(Integer.reverseBytes(operationReference));
 		buf.writeByte((byte)messageType);
@@ -141,6 +142,15 @@ public class AirwideHeader {
 		buf.writeBytes(new byte[]{0,0});
 		buf.writeShort(Short.reverseBytes(overallMessageLength));
 		return buf;
+	}
+
+	@Override
+	public void decode(ByteBuf buf) throws Exception{
+		operationReference = Integer.reverseBytes(buf.readInt());
+		messageType = buf.readByte();
+		operation = buf.readByte();
+		buf.skipBytes(2);
+		overallMessageLength = Short.reverseBytes(buf.readShort());
 	}
 
 }
