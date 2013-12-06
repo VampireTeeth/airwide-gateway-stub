@@ -68,8 +68,8 @@ public class AirwideInboundHandler extends ChannelInboundHandlerAdapter{
 					newInvoke.setApplicationIdentifier(applicationidentifierFactory().newApplicationIdentifier());
 					newInvoke.setDataCodingScheme((byte) 0);
 					newInvoke.setUssdString(ussdStringFactory().newUssdString());
-					ByteBuf invokeBuf = invoke.encode();
-					ctx.writeAndFlush(invokeBuf);
+					ByteBuf newBuf = newInvoke.encode();
+					ctx.writeAndFlush(newBuf);
 					break;
 				case MESSAGE_TYPE_RESULT:
 					break;
