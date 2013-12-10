@@ -8,8 +8,11 @@ import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_PROCESS_USSREQ
 import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_USSEND;
 import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_USSNOTIFY;
 import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_USSREQUEST;
-import static com.iasgrp.stubs.airwide.Factories.*;
-import static com.iasgrp.stubs.airwide.utils.BytesUtils.*;
+import static com.iasgrp.stubs.airwide.Factories.applicationidentifierFactory;
+import static com.iasgrp.stubs.airwide.Factories.dialogReferenceFactory;
+import static com.iasgrp.stubs.airwide.Factories.msisdnFactory;
+import static com.iasgrp.stubs.airwide.Factories.ussdStringFactory;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.hexDump;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -18,6 +21,7 @@ import io.netty.util.ReferenceCountUtil;
 
 import com.iasgrp.stubs.airwide.message.AirwideLogin;
 import com.iasgrp.stubs.airwide.message.AirwideProcessRequestInvoke;
+import com.iasgrp.stubs.airwide.message.AirwideProcessRequestResult;
 import com.iasgrp.stubs.airwide.message.AirwideRequestInvoke;
 
 public class AirwideInboundHandler extends ChannelInboundHandlerAdapter{
@@ -43,33 +47,43 @@ public class AirwideInboundHandler extends ChannelInboundHandlerAdapter{
 						ctx));
 				break;
 			case OPERATION_PROCESS_USSDATA:
+				System.out.format("Received process data: %s%n", hexDump(buf));
+				sendRequestInvoke(ctx, dialogReferenceFactory().newDialogueReference());
 				break;
 			case OPERATION_PROCESS_USSREQUEST:
-				System.out.format("Received process request result: %s%n", hexDump(buf));
+				System.out.format("Received process request: %s%n", hexDump(buf));
+				switch(messageType) {
+				case MESSAGE_TYPE_INVOKE:
+					AirwideProcessRequestInvoke invoke = new AirwideProcessRequestInvoke();
+					invoke.decode(buf);
+					System.out.format("Parsed process request invoke: %s%n", invoke);
+					break;
+				case MESSAGE_TYPE_RESULT:
+					AirwideProcessRequestResult result = new AirwideProcessRequestResult();
+					result.decode(buf);
+					System.out.format("Parsed process request result: %s%n", result);
+					break;
+				}
+				sendRequestInvoke(ctx, dialogReferenceFactory().newDialogueReference());
 				break;
 			case OPERATION_USSEND:
-				System.out.format("Received end result: %s%n", hexDump(buf));
-				ctx.close();
+				System.out.format("Received end: %s%n", hexDump(buf));
+				sendRequestInvoke(ctx, dialogReferenceFactory().newDialogueReference());
+//				ctx.close();
 				break;
 			case OPERATION_USSNOTIFY:
+				System.out.format("Received notify: %s%n", hexDump(buf));
+				sendRequestInvoke(ctx, dialogReferenceFactory().newDialogueReference());
 				break;
 			case OPERATION_USSREQUEST:
-				System.out.format("Received request result: %s%n", hexDump(buf));
+				System.out.format("Received request: %s%n", hexDump(buf));
 				
 				switch(messageType) {
 				case MESSAGE_TYPE_INVOKE:
 					AirwideRequestInvoke invoke = new AirwideRequestInvoke();
 					invoke.decode(buf);
 					System.out.format("Parsed request invoke: %s%n", invoke);
-					AirwideProcessRequestInvoke newInvoke = new AirwideProcessRequestInvoke();
-					newInvoke.getHeader().setOperationReference(invoke.getHeader().getOperationReference());;
-					newInvoke.setMsisdn(msisdnFactory().newMsisdn());
-					newInvoke.setDialogueReference(dialogReferenceFactory().newDialogueReference());
-					newInvoke.setApplicationIdentifier(applicationidentifierFactory().newApplicationIdentifier());
-					newInvoke.setDataCodingScheme((byte) 0);
-					newInvoke.setUssdString(ussdStringFactory().newUssdString());
-					ByteBuf newBuf = newInvoke.encode();
-					ctx.writeAndFlush(newBuf);
+					sendRequestInvoke(ctx, invoke.getHeader().getOperationReference());
 					break;
 				case MESSAGE_TYPE_RESULT:
 					break;
@@ -78,11 +92,24 @@ public class AirwideInboundHandler extends ChannelInboundHandlerAdapter{
 				
 				break;
 			default:
+				System.out.format("Unknown operation: %s%n", hexDump(buf));
 			}
 		}finally{
 			ReferenceCountUtil.release(msg);
 		}
 		
+	}
+
+	private ChannelFuture sendRequestInvoke(ChannelHandlerContext ctx, int operationReference) throws Exception {
+		AirwideProcessRequestInvoke newInvoke = new AirwideProcessRequestInvoke();
+		newInvoke.getHeader().setOperationReference(operationReference);;
+		newInvoke.setMsisdn(msisdnFactory().newMsisdn());
+		newInvoke.setDialogueReference(dialogReferenceFactory().newDialogueReference());
+		newInvoke.setApplicationIdentifier(applicationidentifierFactory().newApplicationIdentifier());
+		newInvoke.setDataCodingScheme((byte) 0);
+		newInvoke.setUssdString(ussdStringFactory().newUssdString());
+		ByteBuf newBuf = newInvoke.encode();
+		return ctx.writeAndFlush(newBuf);
 	}
 
 	@Override

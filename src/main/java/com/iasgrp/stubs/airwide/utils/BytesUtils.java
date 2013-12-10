@@ -393,6 +393,11 @@ public class BytesUtils extends Object {
 		buf.writeBytes(encodeBytes(str.getBytes()));
 	}
 
+	public static void writeLenBytes(ByteBuf buf, byte len, byte[] bytes) {
+		buf.writeByte(len);
+		buf.writeBytes(bytes);
+	}	
+	
 	public static LenSchemeString readLenSchemeEncodedOctetString(ByteBuf buf) {
 		byte len = buf.readByte();
 		byte scheme = 0;
@@ -426,6 +431,17 @@ public class BytesUtils extends Object {
 			byte[] bytes = new byte[len];
 			buf.readBytes(bytes);
 			decoded = decodeBytes(bytes);
+		}
+		return new LenBytes(len, decoded);
+	}
+	
+	public static LenBytes readLenBytes(ByteBuf buf){
+		byte len = buf.readByte();
+		byte[] decoded = "".getBytes();
+		if(len > 0){
+			byte[] bytes = new byte[len];
+			buf.readBytes(bytes);
+			decoded = bytes;
 		}
 		return new LenBytes(len, decoded);
 	}

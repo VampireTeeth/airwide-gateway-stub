@@ -4,8 +4,15 @@ import static com.iasgrp.stubs.airwide.AirwideConstants.DATA_CODING_UCS2;
 import static com.iasgrp.stubs.airwide.AirwideConstants.MESSAGE_TYPE_RESULT;
 import static com.iasgrp.stubs.airwide.AirwideConstants.OPERATION_PROCESS_USSREQUEST;
 import static com.iasgrp.stubs.airwide.AirwideConstants.TCPIP_HEADER_LENGTH;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.readLenBytes;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.readLenEncodedBytes;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.writeLenBytes;
+import static com.iasgrp.stubs.airwide.utils.BytesUtils.writeLenEncodedBytes;
+import static io.netty.buffer.Unpooled.copiedBuffer;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
-public class AirwideProcessRequestResult {
+public class AirwideProcessRequestResult implements AirwideMessage{
 	private AirwideHeader header = new AirwideHeader();
 	private int applicationIdentifier = 0;
 	private byte dataCodingScheme = 0;
@@ -111,5 +118,48 @@ public class AirwideProcessRequestResult {
 	public void setUssdString(String ussdString) {
 		this.ussdString = ussdString;
 	}
+	
+	@Override
+	public ByteBuf encode() throws Exception {
+		ByteBuf bodyBuf = Unpooled.buffer();
+		bodyBuf.writeByte(applicationIdentifierLen);
+		bodyBuf.writeInt(Integer.reverseBytes(applicationIdentifier));
+		
+		byte[] dataCodingSchemeArr = "".getBytes();
+		if(dataCodingSchemeLen > 0){
+			byte[] bytes = new byte[dataCodingSchemeLen];
+			bytes[0] = dataCodingScheme;
+			dataCodingSchemeArr = bytes;
+		}
+		
+		writeLenBytes(bodyBuf, dataCodingSchemeLen, dataCodingSchemeArr);
+		writeLenEncodedBytes(bodyBuf, ussdStringLen, ussdString);
+		
+		header.setOverallMessageLength((short)bodyBuf.readableBytes());
+		ByteBuf headerBuf = header.encode();
+		return copiedBuffer(headerBuf, bodyBuf);
+	}
+	
+	@Override
+	public void decode(ByteBuf buf) throws Exception {
+		header.decode(buf);
+		applicationIdentifierLen = buf.readByte();
+		applicationIdentifier = Integer.reverseBytes(buf.readInt());
+	
+		LenBytes lb = readLenBytes(buf);
+		dataCodingSchemeLen = lb.getLen();
+		dataCodingScheme = lb.getBytes()[0];
+		
+		lb = readLenEncodedBytes(buf);
+		ussdStringLen = lb.getLen();
+		ussdString = new String(lb.getBytes());
+	}
+
+	@Override
+	public String toString() {
+		return "AirwideProcessRequestResult [header=" + header + ", applicationIdentifier=" + applicationIdentifier + ", dataCodingScheme=" + dataCodingScheme + ", ussdString=" + ussdString
+				+ ", applicationIdentifierLen=" + applicationIdentifierLen + ", dataCodingSchemeLen=" + dataCodingSchemeLen + ", ussdStringLen=" + ussdStringLen + "]";
+	}
+	
 
 }
